@@ -1,4 +1,4 @@
-package tourist.util;
+package tourist2.util;
 
 import org.apache.mina.core.service.IoAcceptor;
 import org.apache.mina.core.service.IoHandler;
@@ -13,7 +13,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
-
+/**
+ * Created with IntelliJ IDEA.
+ * User: yangzq2
+ * Date: 13-4-7
+ * Time: 下午6:23
+ */
 public class NioServer implements IoHandler {
     private static Logger log = LoggerFactory.getLogger(NioServer.class);
     private final int port;

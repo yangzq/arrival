@@ -8,7 +8,7 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tourist.util.NioServer;
+import arrival.util.NioServer;
 
 import java.io.IOException;
 import java.util.Map;
@@ -40,7 +40,6 @@ public class SignalingSpout extends BaseRichSpout {
             @Override
             public void messageReceived(String message) throws Exception {
                 logger.info(String.format("spout received:%s", message));
-//                queue.offer(message);
                 queue.put(message); // 往队列中添加信令时阻塞以保证数据不丢失
             }
         };
