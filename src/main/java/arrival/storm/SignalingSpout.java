@@ -44,7 +44,7 @@ public class SignalingSpout extends BaseRichSpout {
                 queue.put(message); // 往队列中添加信令时阻塞以保证数据不丢失
             }
         };
-        nioServer = new NioServer(5001, listener);
+        nioServer = new NioServer(5002, listener);
         try {
             nioServer.start();
         } catch (IOException e) {
