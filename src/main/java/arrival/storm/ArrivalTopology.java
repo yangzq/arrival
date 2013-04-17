@@ -6,6 +6,7 @@ import backtype.storm.StormSubmitter;
 import backtype.storm.generated.AlreadyAliveException;
 import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.topology.TopologyBuilder;
+import backtype.storm.tuple.Fields;
 import backtype.storm.utils.Utils;
 
 /**
@@ -41,7 +42,12 @@ public class ArrivalTopology {
 
     public static TopologyBuilder getTopologyBuilder() {
         TopologyBuilder builder = new TopologyBuilder();
-        // TODO
+        String signallingSpout = "signallingSpout";
+        String preconditionBolt = "preconditionBolt";
+
+        builder.setSpout(signallingSpout, new SignalingSpout());
+        builder.setBolt(preconditionBolt, new PreconditionBolt(), 1)
+                .fieldsGrouping(signallingSpout, SignalingSpout.SIGNALING, new Fields("imsi"));
 
         return builder;
     }

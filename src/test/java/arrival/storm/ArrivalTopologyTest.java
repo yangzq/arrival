@@ -1,5 +1,6 @@
 package arrival.storm;
 
+import arrival.util.EventTypeConst;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.topology.TopologyBuilder;
@@ -51,32 +52,10 @@ public class ArrivalTopologyTest {
         cluster.submitTopology("arrival", conf, builder.createTopology());
 
         Thread.sleep(4 * 1000);
-        Sender sender = new Sender(5002);
+        Sender sender = new Sender(5003);
 
-        sender.send("wlan 1", "02", "2013-01-04 08:01:00", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:01:30", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:02:00", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:02:30", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:03:00", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:03:30", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:04:00", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:04:30", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:05:00", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:05:30", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:06:00", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:06:30", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:07:00", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:07:30", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:08:00", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:08:30", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:09:00", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:09:30", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:10:00", "cause", "lac", "cell");
-        sender.send("wlan 1", "03", "2013-01-04 08:10:30", "cause", "lac", "cell");
-
-        sender.send("wlan 2", "03", "2013-01-04 08:12:00", "cause", "lac", "cell");
-
-        sender.send("wlan 1", "04", "2013-01-04 08:30:00", "cause", "lac", "cell");
+        sender.send("arrival1", EventTypeConst.EVENT_TURN_ON, "2013-01-04 08:01:00", "lac", "airport");
+        sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-04 08:10:00", "lac", "airport");
 
         Thread.sleep(1 * 1000);
         sender.close();
@@ -94,7 +73,7 @@ public class ArrivalTopologyTest {
         cluster.submitTopology("arrival", conf, builder.createTopology());
 
         Thread.sleep(4 * 1000);
-        Sender sender = new Sender(5002);
+        Sender sender = new Sender(5003);
 
 
         Thread.sleep(1 * 1000);
@@ -113,7 +92,7 @@ public class ArrivalTopologyTest {
         cluster.submitTopology("arrival", conf, builder.createTopology());
 
         Thread.sleep(4 * 1000);
-        Sender sender = new Sender(5002);
+        Sender sender = new Sender(5003);
         BufferedReader reader = null;
         try {
 //            String filePath = "/tmp/100001000002068.csv";
@@ -153,14 +132,14 @@ public class ArrivalTopologyTest {
             super.messageReceived(session, message);
         }
 
-        public void send(String imsi, String event, String time, String cause, String loc, String cell) throws ParseException {
+        public void send(String imsi, String event, String time, String loc, String cell) throws ParseException {
             StringBuilder sb = new StringBuilder();
-            session.write(sb.append(imsi).append(",").append(event).append(",").append(getTime(time)).append(",").append(cause).append(",").append(loc).append(",").append(cell));
+            session.write(sb.append(imsi).append(",").append(event).append(",").append(getTime(time)).append(",").append(loc).append(",").append(cell));
         }
 
-        public void send(String imsi, String event, long time, String cause, String loc, String cell) throws ParseException {
+        public void send(String imsi, String event, long time, String loc, String cell) throws ParseException {
             StringBuilder sb = new StringBuilder();
-            session.write(sb.append(imsi).append(",").append(event).append(",").append(time).append(",").append(cause).append(",").append(loc).append(",").append(cell));
+            session.write(sb.append(imsi).append(",").append(event).append(",").append(time).append(",").append(loc).append(",").append(cell));
         }
 
         public void send(String signal) throws ParseException, InterruptedException {
@@ -178,7 +157,7 @@ public class ArrivalTopologyTest {
     }
 
     private static String getTime(long s) throws ParseException {
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(s - TimeZone.getDefault().getRawOffset()));
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date(s - TimeZone.getDefault().getRawOffset()));
     }
 
     public static void main(String[] args) throws ParseException {

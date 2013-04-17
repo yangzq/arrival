@@ -7,9 +7,10 @@ import backtype.storm.topology.base.BaseRichSpout;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
 
+import arrival.util.NioServer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import arrival.util.NioServer;
 
 import java.io.IOException;
 import java.util.Map;
@@ -19,7 +20,6 @@ import static java.lang.String.format;
 
 /**
  * SignalingSpout
- *
  */
 public class SignalingSpout extends BaseRichSpout {
     public static final String SIGNALING = "signalStream";
@@ -36,7 +36,7 @@ public class SignalingSpout extends BaseRichSpout {
     @Override
     public void open(Map map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
         this.spoutOutputCollector = spoutOutputCollector;
-        queue = new LinkedBlockingQueue<String>(1000);
+        queue = new LinkedBlockingQueue<String>(10000);
         NioServer.Listener listener = new NioServer.Listener() {
             @Override
             public void messageReceived(String message) throws Exception {
@@ -44,7 +44,7 @@ public class SignalingSpout extends BaseRichSpout {
                 queue.put(message); // 往队列中添加信令时阻塞以保证数据不丢失
             }
         };
-        nioServer = new NioServer(5002, listener);
+        nioServer = new NioServer(5003, listener);
         try {
             nioServer.start();
         } catch (IOException e) {
