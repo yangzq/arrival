@@ -21,11 +21,11 @@ public class User implements UserGroup.Listener {
     private Accout accout18;
     private Accout.Status status = Accout.Status.Normal;
 
-    public User(String imsi, UserGroup.Listener listener) throws IOException {
+    public User(String imsi, UserGroup.Listener listener, EditLog<AccountSnapshot> editLog) throws IOException {
         this.imsi = imsi;
         this.listener = listener;
-        accout8 = new Accout(8 * ONE_HOUR, imsi, this, 3);
-        accout18 = new Accout(18 * ONE_HOUR, imsi, this, 5);
+        accout8 = new Accout(8 * ONE_HOUR, imsi, this, 3, editLog);
+        accout18 = new Accout(18 * ONE_HOUR, imsi, this, 5, editLog);
 //        logger.info(imsi + "~8~" + accout8.getEditLog().getFile());
 //        logger.info(imsi + "~18~" + accout18.getEditLog().getFile());
 //        System.out.println(imsi + "~8~" + accout8.getEditLog().getFile());

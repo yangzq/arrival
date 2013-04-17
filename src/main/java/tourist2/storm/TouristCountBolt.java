@@ -45,11 +45,11 @@ public class TouristCountBolt extends BaseBasicBolt {
             workerImsi.remove(imsi);
         }
         try {
-            System.out.println(String.format("tourist:%s,imsi:%s,signal time:%s", touristImsi.size(), StringUtils.join(touristImsi.toArray(),","), getTime(time)));
-            System.out.println(String.format("worker:%s,imsi:%s,signal time:%s", workerImsi.size(), StringUtils.join(workerImsi.toArray(),","), getTime(time)));
+            System.out.println(String.format("tourist:%s,imsi:%s,signal time:%s/%s", touristImsi.size(), StringUtils.join(touristImsi.toArray(),","), getTime(time), time));
+            System.out.println(String.format("worker:%s,imsi:%s,signal time:%s/%s", workerImsi.size(), StringUtils.join(workerImsi.toArray(),","), getTime(time), time));
             if (countLogger.isInfoEnabled()){
-                countLogger.info(String.format("tourist:%s,imsi:%s,signal time:%s", touristImsi.size(), StringUtils.join(touristImsi.toArray(),","), getTime(time)));
-                countLogger.info(String.format("worker:%s,imsi:%s,signal time:%s", workerImsi.size(), StringUtils.join(workerImsi.toArray(),","), getTime(time)));
+                countLogger.info(String.format("tourist:%s,imsi:%s,signal time:%s/%s", touristImsi.size(), StringUtils.join(touristImsi.toArray(),","), getTime(time), time));
+                countLogger.info(String.format("worker:%s,imsi:%s,signal time:%s/%s", workerImsi.size(), StringUtils.join(workerImsi.toArray(),","), getTime(time), time));
             }
         } catch (ParseException e) {
             e.printStackTrace();
@@ -63,7 +63,7 @@ public class TouristCountBolt extends BaseBasicBolt {
     }
 
     String getTime(long s) throws ParseException {
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date(s- TimeZone.getDefault().getRawOffset()));
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date(s - TimeZone.getDefault().getRawOffset()));
     }
 
 }

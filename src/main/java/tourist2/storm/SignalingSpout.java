@@ -83,13 +83,13 @@ public class SignalingSpout extends BaseRichSpout {
 //                ss.set(en);
 //            }
 //        spoutOutputCollector.emit(TIME, new Values(message));
-      String[] columns = message.split(",");
-      long time = Long.parseLong(columns[1]);
-      spoutOutputCollector.emit(SIGNALING, new Values(columns[0], time, columns[2], columns[3]));
-      if (i % updateTimeInterval == 0L) {
-          spoutOutputCollector.emit(TIME, new Values(time));
-      }
-      i++;
+            String[] columns = message.split(",");
+            long time = Long.parseLong(columns[1]);
+            spoutOutputCollector.emit(SIGNALING, new Values(columns[0], time, columns[2], columns[3]));
+            if (i % updateTimeInterval == 0L) {
+                spoutOutputCollector.emit(TIME, new Values(time));
+            }
+            i++;
 ////      System.out.println("Tuple amount:" + i);
         }
     }

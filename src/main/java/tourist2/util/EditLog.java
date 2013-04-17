@@ -1,160 +1,153 @@
 package tourist2.util;
 
+import org.apache.commons.collections.Factory;
+import org.apache.commons.collections.map.LazyMap;
+import org.apache.commons.io.FileUtils;
+
 import java.io.*;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 逐条记录收到的signal，支持从最后的的记录逐条读出.
- * 大约每秒写20万条记录
+ * 写日志。
  */
-public class EditLog {
-//    private final File logDir;
-    private File file;
-    private DataOutputStream out;
-    private int writeIndex = 0;
-    private boolean isClosed = false;
+public class EditLog<T extends EditLog.Record> implements Serializable {
 
-    private RandomAccessFile readFile;
-    private DataInputStream in;
-    private long readPosition = 0;
-    private int readIndex = 0;
+    private transient final Method readMethod;
+    private final File logDir;//EditLog文件夹名
+    private CurrentLog currentLog; //当前的日志
 
-    private long logIndex = 0;
-
-
-    public EditLog(String imsi) throws IOException {
-//        logDir = File.createTempFile("storm", imsi);
-//        logDir.delete();
-//        logDir.mkdir();
-//        System.out.println(logDir.getCanonicalPath());
-//        file = new File(logDir, writeIndex + "");
-//        out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
-//        logIndex = 0;
-    }
-
-    public void append(long time, boolean isInSide, long lastTime, boolean lastInside, long[] recentDays) throws IOException {
-//
-//        if (isClosed) {
-//            file = new File(logDir, writeIndex + "");
-//            out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
-//            logIndex = 0;
-//            isClosed = false;
-//        }
-//        long size = out.size();
-////    if (size > 1024 * 1024 * 512) { //大约每512M，换一个文件
-//        if (size > 1024 * 1024 * 1) { //大约每1M，换一个文件
-//            out.close();
-//            file = new File(logDir, ++writeIndex + "");
-//            out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
-//            logIndex = 0;
-//            size = out.size();
-//        }
-//        out.writeLong(time);
-//        out.writeBoolean(isInSide);
-//        //如果每次都记录状态，则会影响速度，所以每隔100条记录，记录一下状态
-//        boolean logStatus = ++logIndex % 100 == 1;
-//        out.writeBoolean(logStatus);
-//        if (logStatus) {
-//            out.writeLong(lastTime);
-//            out.writeBoolean(lastInside);
-//            for (int i = 0; i < 10; i++) {
-//                out.writeLong(recentDays[i]);
-//            }
-//        }
-//        out.writeLong(size);
-    }
-
-    public void readFromTail() throws IOException {
-//        out.close();
-//        isClosed = true;
-//        readIndex = writeIndex;
-//        readFile = new RandomAccessFile(new File(logDir, readIndex + ""), "r");
-//        in = new DataInputStream(new FileInputStream(readFile.getFD()));
-//        readFile.seek(readFile.length() - 8);
-//        readPosition = in.readLong();
-//        readFile.seek(readPosition);
-    }
-
-    public long getTime() throws IOException {
-        return in.readLong();
-    }
-
-
-    public boolean getInside() throws IOException {
-        return in.readBoolean();
-    }
-
-    public boolean getLogStatus() throws IOException {
-        return in.readBoolean();
-    }
-
-    public long getLastTime() throws IOException {
-        return in.readLong();
-    }
-
-    public boolean getLastInside() throws IOException {
-        return in.readBoolean();
-    }
-
-    public long[] getRecentDays() throws IOException {
-        long[] recentDays = new long[10];
-        for (int i = 0; i < recentDays.length; i++) {
-            recentDays[i] = in.readLong();
+    private transient final LazyMap userRecordCount = (LazyMap) LazyMap.decorate(new HashMap(),new Factory() {
+        @Override
+        public Object create() {
+            return new AtomicInteger(0);
         }
-        return recentDays;
-    }
-
-
-    public boolean next() throws IOException {
-//        if (readPosition - 8 > 0) {
-//            readFile.seek(readPosition - 8);
-//            readPosition = in.readLong();
-//            readFile.seek(readPosition);
-//            return true;
-//        } else {
-//            readIndex--;
-//            if (readIndex >= 0) {
-//                readFile = new RandomAccessFile(new File(logDir, readIndex + ""), "r");
-//                in = new DataInputStream(new FileInputStream(readFile.getFD()));
-//                readFile.seek(readFile.length() - 8);
-//                readPosition = in.readLong();
-//                readFile.seek(readPosition);
-//                return true;
-//            } else {
-//                return false;
-//            }
-//        }
-        return false;
-    }
-
-    public File getLogDir() {
-        return null;
-//        return logDir;
-    }
-
-    public File getFile() {
-        return file;
-    }
-
-    public static void main(String[] args) throws IOException {
-        EditLog log = new EditLog("100001019584781");
-        long begin = System.currentTimeMillis();
-        for (int i = 0; i < 20000000; i++) {
-            log.append(0L + i, true, 1L, true, new long[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
+    });
+    public EditLog(File logDir, Class<?> recordClass) {
+        try {
+            this.logDir = logDir;
+            FileUtils.deleteDirectory(logDir);
+            logDir.mkdirs();
+            currentLog = new CurrentLog(logDir, 0, 0, userRecordCount);
+            readMethod = recordClass.getMethod("readFrom", DataInputStream.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        log.readFromTail();
-        long end = System.currentTimeMillis();
-        System.out.println(String.format("cost:%dms", end - begin));
-        System.out.println(log.getTime());
-        System.out.println(log.getInside());
-        log.next();
-        System.out.println(log.getTime());
-        System.out.println(log.getInside());
-        for (int i = 2; i <= (10000000 - 50); i++) {
-            log.next();
+
+    }
+
+    public void append(T record) throws IOException {
+        AtomicInteger count = (AtomicInteger) userRecordCount.get(record.getImsi());
+        record.setSync(count.incrementAndGet()%100==1);
+        if (currentLog.out.size() > 512 * 1024 * 1024) {
+            currentLog.out.close();
+            currentLog = new CurrentLog(logDir, ++currentLog.logNameIndex, 0,userRecordCount);
         }
-        System.out.println(log.getTime());
-        System.out.println(log.getInside());
+        int size = currentLog.out.size();
+        record.writeTo(currentLog.out);
+        currentLog.out.writeInt(size);
+    }
+
+    public boolean forEachFromTail(RecordProcessor<T> processor) {//如果某次processor返回false，则终止，返回false
+        try {
+            currentLog.out.close();
+            int logNameIndex = currentLog.logNameIndex;
+            File logFile = new File(logDir, String.valueOf(logNameIndex));
+            boolean isContinue = true;
+            while (logFile.exists() && isContinue) {
+                RandomAccessFile randomAccessFile = new RandomAccessFile(logFile, "r");
+                DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(randomAccessFile.getFD())));
+                randomAccessFile.seek(logFile.length() - 4);
+                int position = in.readInt();
+                while (position == -1) {
+                    position = in.readInt();
+                }
+                while (isContinue) {
+                    randomAccessFile.seek(position);
+                    Record record = (Record) readMethod.invoke(0, in);
+                    record.setLogNameIndex(logNameIndex);
+                    record.setStartPosition(position);
+                    isContinue = processor.on((T) record);
+                    if (position == 0) {
+                        break;
+                    }
+                    randomAccessFile.seek(position - 4);
+                    position = in.readInt();
+                }
+            }
+            return isContinue;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
+    public void seek(int logNameIndex, int startPosition) {
+        try {
+            currentLog.out.close();
+            currentLog = new CurrentLog(logDir, ++currentLog.logNameIndex, startPosition, userRecordCount);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void close() {
+        try {
+            currentLog.out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public interface RecordProcessor<T extends Record> {
+        boolean on(T record);
+    }
+
+    public interface Record {
+        void writeTo(DataOutputStream out) throws IOException;
+        String getImsi();
+        int getStartPosition();
+
+        int getLogNameIndex();
+        void setSync(boolean sync);
+
+        void setLogNameIndex(int logNameIndex);
+
+        void setStartPosition(int startPosition);
+    }
+
+    private static class CurrentLog implements Serializable {
+        private int logNameIndex = 0;// EditLog文件序号，从0开始，每隔512M换一个文件
+        private transient DataOutputStream out;//当前EditLog
+
+        public CurrentLog(File logDir, int logNameIndex, int position, LazyMap userRecordCount) throws IOException {
+            userRecordCount.clear();
+            this.logNameIndex = logNameIndex;
+            if (position != 0) {
+                RandomAccessFile randomAccessFile = new RandomAccessFile(new File(logDir, String.valueOf(logNameIndex)), "rw");
+                randomAccessFile.seek(position);
+                this.out = new StartWithPositionDataOutputStream(new BufferedOutputStream(new FileOutputStream(randomAccessFile.getFD())), position);
+                while (out.size() < randomAccessFile.length()) {
+                    out.writeInt(-1);
+                    out.close();
+                }
+                randomAccessFile.seek(position);
+                this.out = new StartWithPositionDataOutputStream(new BufferedOutputStream(new FileOutputStream(randomAccessFile.getFD())), position);
+            } else {
+                this.out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(new File(logDir, String.valueOf(logNameIndex)))));
+            }
+        }
+    }
+
+    private static class StartWithPositionDataOutputStream extends DataOutputStream {
+        public StartWithPositionDataOutputStream(OutputStream out, int written) {
+            this(out);
+            this.written = written;
+        }
+
+        public StartWithPositionDataOutputStream(OutputStream out) {
+            super(out);
+        }
+    }
 }
