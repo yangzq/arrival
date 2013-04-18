@@ -1,4 +1,6 @@
-package tourist2.util;
+package arrival.util;
+
+import tourist2.util.KbUtils;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;

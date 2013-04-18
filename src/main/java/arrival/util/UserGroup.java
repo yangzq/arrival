@@ -1,4 +1,4 @@
-package tourist2.util;
+package arrival.util;
 
 import org.apache.commons.collections.Transformer;
 

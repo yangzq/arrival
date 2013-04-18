@@ -1,12 +1,12 @@
-package tourist2.util;
-
-import java.io.IOException;
+package arrival.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static tourist2.util.TimeUtil.ONE_HOUR;
-import static tourist2.util.TimeUtil.getDays;
+import java.io.IOException;
+
+import static arrival.util.TimeUtil.ONE_HOUR;
+import static arrival.util.TimeUtil.getDays;
 
 /**
  * 一个用户，有两个账户，分别为8~18点的账户，18~8点的账户

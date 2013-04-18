@@ -1,4 +1,4 @@
-package tourist2.util;
+package arrival.util;
 
 import org.apache.commons.collections.Factory;
 import org.apache.commons.collections.map.LazyMap;
@@ -18,12 +18,13 @@ public class EditLog<T extends EditLog.Record> implements Serializable {
     private final File logDir;//EditLog文件夹名
     private CurrentLog currentLog; //当前的日志
 
-    private transient final LazyMap userRecordCount = (LazyMap) LazyMap.decorate(new HashMap(),new Factory() {
+    private transient final LazyMap userRecordCount = (LazyMap) LazyMap.decorate(new HashMap(), new Factory() {
         @Override
         public Object create() {
             return new AtomicInteger(0);
         }
     });
+
     public EditLog(File logDir, Class<?> recordClass) {
         try {
             this.logDir = logDir;
@@ -39,10 +40,10 @@ public class EditLog<T extends EditLog.Record> implements Serializable {
 
     public void append(T record) throws IOException {
         AtomicInteger count = (AtomicInteger) userRecordCount.get(record.getImsi());
-        record.setSync(count.incrementAndGet()%100==1);
+        record.setSync(count.incrementAndGet() % 100 == 1);
         if (currentLog.out.size() > 512 * 1024 * 1024) {
             currentLog.out.close();
-            currentLog = new CurrentLog(logDir, ++currentLog.logNameIndex, 0,userRecordCount);
+            currentLog = new CurrentLog(logDir, ++currentLog.logNameIndex, 0, userRecordCount);
         }
         int size = currentLog.out.size();
         record.writeTo(currentLog.out);
@@ -106,10 +107,13 @@ public class EditLog<T extends EditLog.Record> implements Serializable {
 
     public interface Record {
         void writeTo(DataOutputStream out) throws IOException;
+
         String getImsi();
+
         int getStartPosition();
 
         int getLogNameIndex();
+
         void setSync(boolean sync);
 
         void setLogNameIndex(int logNameIndex);

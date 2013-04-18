@@ -22,7 +22,7 @@ import static java.lang.String.format;
  * SignalingSpout
  */
 public class SignalingSpout extends BaseRichSpout {
-    public static final String SIGNALING = "signalStream";
+    public static final String SIGNALLING = "signalStream";
     private static Logger logger = LoggerFactory.getLogger(SignalingSpout.class);
     LinkedBlockingQueue<String> queue = null;
     NioServer nioServer = null;
@@ -30,7 +30,7 @@ public class SignalingSpout extends BaseRichSpout {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declareStream(SIGNALING, new Fields("imsi", "eventType", "time", "lac", "cell"));
+        outputFieldsDeclarer.declareStream(SIGNALLING, new Fields("imsi", "eventType", "time", "lac", "cell"));
     }
 
     @Override
@@ -60,10 +60,10 @@ public class SignalingSpout extends BaseRichSpout {
             String[] columns = message.split(",");
             Values tuple = new Values(columns[0], columns[1], Long.parseLong(columns[2]), columns[3], columns[4]);
             if (logger.isDebugEnabled()) {
-                logger.debug(format("[%s]:%s", SIGNALING, tuple.toString()));
+                logger.debug(format("[%s]:%s", SIGNALLING, tuple.toString()));
             }
-            spoutOutputCollector.emit(SIGNALING, tuple);
-            logger.info(String.format("spout sent:%s,%s,%s", tuple.get(0), tuple.get(1), tuple.get(2)));
+            spoutOutputCollector.emit(SIGNALLING, tuple);
+            logger.info(String.format("spout sent:%s,%s,%s,%s,%s", tuple.get(0), tuple.get(1), tuple.get(2), tuple.get(3), tuple.get(4)));
         }
     }
 

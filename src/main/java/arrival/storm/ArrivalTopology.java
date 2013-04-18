@@ -44,10 +44,14 @@ public class ArrivalTopology {
         TopologyBuilder builder = new TopologyBuilder();
         String signallingSpout = "signallingSpout";
         String preconditionBolt = "preconditionBolt";
+        String statusDetectorBolt = "statusDetectorBolt";
 
         builder.setSpout(signallingSpout, new SignalingSpout());
         builder.setBolt(preconditionBolt, new PreconditionBolt(), 1)
-                .fieldsGrouping(signallingSpout, SignalingSpout.SIGNALING, new Fields("imsi"));
+                .fieldsGrouping(signallingSpout, SignalingSpout.SIGNALLING, new Fields("imsi"));
+        builder.setBolt(statusDetectorBolt, new UserGroupStatusDetectorBolt(), 1)
+                .fieldsGrouping(preconditionBolt, PreconditionBolt.PRECONDITION, new Fields("imsi"))
+                .allGrouping(preconditionBolt, PreconditionBolt.UPDATETIME);
 
         return builder;
     }

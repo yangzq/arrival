@@ -1,12 +1,14 @@
 package arrival.storm;
 
 import arrival.util.KbUtils;
+
 import backtype.storm.topology.BasicOutputCollector;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * Time: 上午10:57
  */
 public class PreconditionBolt extends BaseBasicBolt {
-    private Logger logger = LoggerFactory.getLogger(PreconditionBolt.class);
+    private static Logger logger = LoggerFactory.getLogger(PreconditionBolt.class);
     public static final String PRECONDITION = "preconditionStream";
     public static final String UPDATETIME = "updateTimeStream";
     private BasicOutputCollector outputCollector;
@@ -31,6 +33,7 @@ public class PreconditionBolt extends BaseBasicBolt {
         Long time = tuple.getLong(2);
         String lac = tuple.getString(3);
         String cell = tuple.getString(4);
+        System.out.println(String.format("[%s]%s,%s,%s,%s,%s", PRECONDITION, imsi, eventType, time, lac, cell));
         logger.info(String.format("[%s]%s,%s,%s,%s,%s", PRECONDITION, imsi, eventType, time, lac, cell));
         if (logger.isDebugEnabled()){
             logger.debug(String.format("[%s]%s,%s,%s,%s,%s", PRECONDITION, imsi, eventType, time, lac, cell));
