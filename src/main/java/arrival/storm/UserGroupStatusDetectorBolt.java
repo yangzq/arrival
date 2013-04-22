@@ -21,49 +21,42 @@ import java.util.Map;
  * 接收所有的信令
  */
 public class UserGroupStatusDetectorBolt extends BaseBasicBolt implements UserGroup.Listener {
-    private static Logger logger = LoggerFactory.getLogger(arrival.storm.SignalingSpout.class);
+    private static Logger logger = LoggerFactory.getLogger(UserGroupStatusDetectorBolt.class);
     private UserGroup userGroup = new UserGroup(this);
-//    private OutputCollector collector;
     private BasicOutputCollector outputcollector;
     public static final String DETECTORSTREAM = "detectorStream";
-//    final AtomicInteger count = new AtomicInteger();
-//    final AtomicLong ss = new AtomicLong(System.currentTimeMillis());
 
     @Override
     public void execute(Tuple input, BasicOutputCollector collector) {
-//        if (count.incrementAndGet() % 100000 == 1) {
-//            long en = System.currentTimeMillis();
-//            logger.info("cost8:" + (en - ss.get()));
-//            ss.set(en);
-//        }
         this.outputcollector = collector;
         String sourceStreamId = input.getSourceStreamId();
-        if (SignalingSpout.SIGNALLING.equals(sourceStreamId)) {
+        if (PreconditionBolt.PRECONDITION.equals(sourceStreamId)) {
             String imsi = input.getString(0);
-            long time = input.getLong(1);
-            String loc = input.getString(2);
-            String cell = input.getString(3);
+            String eventType = input.getString(1);
+            long time = input.getLong(2);
+            String lac = input.getString(3);
+            String cell = input.getString(4);
             try {
-                userGroup.onSignal(time, imsi, loc, cell);
+                userGroup.onSignal(time, eventType, imsi, lac, cell);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-//        else if (SignalingSpout.TIME.equals(sourceStreamId)) {
-//            userGroup.updateGlobleTime(input.getLong(0));
-//        }
+        else if (PreconditionBolt.UPDATETIME.equals(sourceStreamId)) {
+            userGroup.updateGlobleTime(input.getLong(0));
+        }
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declareStream(DETECTORSTREAM, new Fields("time", "imsi", "status")); //用户有三种状态:1：游客(tourist),2:工作人员(worker),3:什么都不是(normal)
+        declarer.declareStream(DETECTORSTREAM, new Fields("time", "imsi", "status")); //用户有三种状态:1：到港客户(arrival),2:工作人员(worker),3:什么都不是(normal)
     }
 
     @Override
-    public void onAddTourist(long userTime, String imsi, Accout.Status preStatus) {
-        if (preStatus == Accout.Status.Tourist) return;
-        this.outputcollector.emit(DETECTORSTREAM, new Values(userTime, imsi, "tourist"));
-        System.out.println(String.format("+t:%s %s", imsi, userTime));
+    public void onAddArrival(long userTime, String imsi, Accout.Status preStatus) {
+        if (preStatus == Accout.Status.Arrival) return;
+        this.outputcollector.emit(DETECTORSTREAM, new Values(userTime, imsi, "arrival"));
+        System.out.println(String.format("+a:%s %s", imsi, userTime));
     }
 
     @Override

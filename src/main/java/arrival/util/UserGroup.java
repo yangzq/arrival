@@ -7,10 +7,11 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * 一组用户，其中，每个用户为一个User对象，当用户状态发生变更时，会发出通知给listener
- * 用户状态有三种：Worker，Tourist，Normal
+ * 用户状态有三种：Worker、Arrival、Normal，分别对应机场工作人员、来港客户、普通用户；
  */
 public class UserGroup implements Serializable {
 
@@ -20,7 +21,7 @@ public class UserGroup implements Serializable {
     private EditLog<AccountSnapshot> editLog = null;
 
     public void init() {
-        this.editLog = new EditLog<AccountSnapshot>(new File(System.getProperty("java.io.tmpdir"), "UserGroup@" + this.hashCode()), AccountSnapshot.class);
+        this.editLog = new EditLog<AccountSnapshot>(new File(System.getProperty("java.io.tmpdir"), "UserGroup@" + this.hashCode() + new Random().nextInt(1000)), AccountSnapshot.class);
 
     }
 
@@ -41,7 +42,7 @@ public class UserGroup implements Serializable {
         this.listener = listener;
     }
 
-    public void onSignal(long time, String imsi, String loc, String cell) throws IOException {
+    public void onSignal(long time, String eventType, String imsi, String lac, String cell) throws IOException {
         User user = detectors.get(imsi);
         if (user == null) {
             synchronized (detectors) {
@@ -52,7 +53,7 @@ public class UserGroup implements Serializable {
                 }
             }
         }
-        user.onSignal(time, loc, cell);
+        user.onSignal(time, eventType, lac, cell);
     }
 
     public void updateGlobleTime(Long globalTime) {
@@ -68,10 +69,8 @@ public class UserGroup implements Serializable {
     }
 
     public static interface Listener {
-        void onAddTourist(long userTime, String imsi, Accout.Status preStatus);
-
+        void onAddArrival(long userTime, String imsi, Accout.Status preStatus);
         void onAddWorker(long userTime, String imsi, Accout.Status preStatus);
-
         void onAddNormal(long userTime, String imsi, Accout.Status preStatus);
     }
 

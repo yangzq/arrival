@@ -51,7 +51,7 @@ public class PreconditionBolt extends BaseBasicBolt {
         if (time > lastSignalTime){
             basicOutputCollector.emit(UPDATETIME, new Values(time));
             lastSignalTime = time;
-            logger.info(String.format("[%s]%s", UPDATETIME, time));
+            logger.debug(String.format("[%s]%s", UPDATETIME, time));
         }
     }
 

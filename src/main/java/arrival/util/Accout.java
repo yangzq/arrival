@@ -1,16 +1,14 @@
 package arrival.util;
 
-import tourist2.util.KbUtils;
-
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static tourist2.util.TimeUtil.ONE_DAY;
-import static tourist2.util.TimeUtil.ONE_HOUR;
+import static arrival.util.TimeUtil.ONE_DAY;
+import static arrival.util.TimeUtil.ONE_HOUR;
 
 /**
- * 账户，代表一个用户在某个统计方式下的状态，比如（如果按照8~18点统计，他应该是Tourist?Worker?Normal?
+ * 账户，代表一个用户在某个统计方式下的状态，比如他应该是Arrival?Worker?Normal?
  * 每个账户会保存三个状态：
  * 1. 最后一次信令时间：lastTime
  * 2. 最后一次信令时的状态：lastInside
@@ -23,34 +21,36 @@ public class Accout {
 
 
     public enum Status {
-        Worker, Normal, Tourist
+        Worker, Normal, Arrival
     }
 
     private final long start;
     private final String imsi;
     private final UserGroup.Listener listener;
-    private final int daysThreashold;
+    private boolean bootStatus = false;
 
-    private long lastStart; //上次统计周期开始时间,绝对时间。默认值为1970年的早8点
+    private long lastStart; //上次统计开始时间,绝对时间。默认值为1970年的早8点
     private long lastTime = 0; // 上次信令时间
     private boolean lastInside = false; // 上次信令是否在里面
-    private long[] lastRecentDays = new long[10]; // 最近10天的停留时间
+    private long[] lastRecentDays = new long[30]; // 最近30天的停留时间
     private Status lastStatus = Status.Normal; //上次用户状态
 
 
     private final EditLog<AccountSnapshot> editLog;
 
-    public Accout(long start, String imsi, UserGroup.Listener listener, int daysThreashold, EditLog<AccountSnapshot> editLog) throws IOException {
+    public Accout(long start, String imsi, UserGroup.Listener listener, EditLog<AccountSnapshot> editLog) throws IOException {
         this.start = start;
         this.imsi = imsi;
         this.listener = listener;
         this.lastStart = start;
-        this.daysThreashold = daysThreashold;
         this.editLog = editLog;
     }
 
-    public void onSignal(final long time, String loc, String cell) throws IOException {
-        boolean isInside = KbUtils.getInstance().isInside(loc, cell);
+    public void onSignal(final long time, String eventType, String lac, String cell) throws IOException {
+        boolean isInside = KbUtils.getInstance().isInAirport(lac, cell);
+        if (isInside && eventType.equals(EventTypeConst.EVENT_TURN_ON)){
+            bootStatus = true;
+        }
         AccountSnapshot accountSnapshot = new AccountSnapshot(start, imsi, time, isInside, true, lastStart, lastTime, lastInside, lastRecentDays, lastStatus);
         this.editLog.append(accountSnapshot);
         if (time >= lastTime) {//正序
@@ -58,7 +58,7 @@ public class Accout {
         } else {//乱序,很少发生，不需要考虑效率
             final List<AccountSnapshot> misOrderSnapshots = new ArrayList<AccountSnapshot>();
             misOrderSnapshots.add(accountSnapshot);
-            boolean isFindSync = editLog.forEachFromTail(new EditLog.RecordProcessor<AccountSnapshot>() {
+            boolean isFindSync = !editLog.forEachFromTail(new EditLog.RecordProcessor<AccountSnapshot>() {
                 @Override
                 public boolean on(AccountSnapshot record) {
                     misOrderSnapshots.add(record);
@@ -78,7 +78,7 @@ public class Accout {
             } else {
                 this.lastInside = false;
                 this.lastTime = 0;
-                this.lastRecentDays = new long[10];
+                this.lastRecentDays = new long[30];
                 this.lastStart = this.start;
                 this.lastStatus = Status.Normal;
             }
@@ -98,17 +98,9 @@ public class Accout {
     }
 
     private void order(long time, boolean inside) {
-//        System.out.println("");
         do {
             if (lastInside) { // 上次在景区则添加本次停留时间
-//                if (time == 1357228921422L){
-//                    System.out.println("time = [" + time + "], inside = [" + inside + "]");
-//                }
-                if (start == 8 * ONE_HOUR) {
-                    lastRecentDays[9] += Math.max((Math.min(time, lastStart + 10 * ONE_HOUR) - lastTime), 0);
-                } else if (start == 18 * ONE_HOUR) {
-                    lastRecentDays[9] += Math.max((Math.min(time, lastStart + 14 * ONE_HOUR) - lastTime), 0);
-                }
+                lastRecentDays[29] += Math.max((Math.min(time, lastStart + 24 * ONE_HOUR) - lastTime), 0);
             }
             if (time < lastStart + ONE_DAY) {
                 lastTime = time;
@@ -117,17 +109,11 @@ public class Accout {
                 for (int i = 0; i < lastRecentDays.length - 1; i++) {
                     lastRecentDays[i] = lastRecentDays[i + 1];
                 }
-                lastRecentDays[9] = 0;
+                lastRecentDays[29] = 0;
                 lastStart += ONE_DAY;
             }
         } while (time > lastStart + ONE_DAY - 1);
         lastInside = inside;
-//        System.out.println(format("time: %s, lastStart: %s ,lastTime: %s",getTime(time),getTime(lastStart),getTime(lastTime)));
-    }
-
-
-    private static String getTime(long s) {
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(s - TimeZone.getDefault().getRawOffset()));
     }
 
     public boolean isWorker() {
@@ -135,34 +121,27 @@ public class Accout {
     }
 
     public void updateGlobleTime(Long globalTime) {
-        if (globalTime > lastTime) {
+        if (lastInside && globalTime > lastTime) {
             order(globalTime, lastInside);
+            check(globalTime);
         }
-        check(globalTime);
     }
 
     private void check(long time) {
-//        StringBuffer sb = new StringBuffer();
-//        for (long a : lastRecentDays) sb.append(a).append(",");
-//        System.out.println(getTime(time)+":"+daysThreashold + ":" + sb);
-//        if (time == 1357537486248L){
-//            System.out.println();
-//        }
         int i = 0;
+        long timeSum = 0L;
         for (long o : lastRecentDays) {
-            if (o > daysThreashold * ONE_HOUR) {
-                if (++i > 4) {
-                    if (lastStatus != Status.Worker) {
-                        this.listener.onAddWorker(time, imsi, lastStatus);
-                        lastStatus = Status.Worker;
-                    }
+            if ((++i > 9) || ((timeSum += o) > (50 * ONE_HOUR - 1))) {
+                if (lastStatus != Status.Worker) {
+                    this.listener.onAddWorker(time, imsi, lastStatus);
+                    lastStatus = Status.Worker;
                 }
             }
         }
         if (lastInside) {
             if (lastStatus != Status.Worker) {
-                this.listener.onAddTourist(time, imsi, lastStatus);
-                lastStatus = Status.Tourist;
+                this.listener.onAddArrival(time, imsi, lastStatus);
+                lastStatus = Status.Arrival;
             }
         } else {
             if (lastStatus != Status.Worker) {
@@ -170,9 +149,5 @@ public class Accout {
                 lastStatus = Status.Normal;
             }
         }
-    }
-
-    public EditLog getEditLog() {
-        return editLog;
     }
 }

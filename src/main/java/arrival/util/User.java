@@ -17,37 +17,30 @@ public class User implements UserGroup.Listener {
     private static Logger logger = LoggerFactory.getLogger(User.class);
     private final String imsi;
     private final UserGroup.Listener listener;
-    private Accout accout8;
-    private Accout accout18;
+    private Accout accout;
     private Accout.Status status = Accout.Status.Normal;
 
     public User(String imsi, UserGroup.Listener listener, EditLog<AccountSnapshot> editLog) throws IOException {
         this.imsi = imsi;
         this.listener = listener;
-        accout8 = new Accout(8 * ONE_HOUR, imsi, this, 3, editLog);
-        accout18 = new Accout(18 * ONE_HOUR, imsi, this, 5, editLog);
-//        logger.info(imsi + "~8~" + accout8.getEditLog().getFile());
-//        logger.info(imsi + "~18~" + accout18.getEditLog().getFile());
-//        System.out.println(imsi + "~8~" + accout8.getEditLog().getFile());
-//        System.out.println(imsi + "~18~" + accout18.getEditLog().getFile());
+        accout = new Accout(8 * ONE_HOUR, imsi, this, editLog);
     }
 
-    public void onSignal(long time, String loc, String cell) {
+    public void onSignal(long time, String eventType, String lac, String cell) {
         try {
-            long timeInDay = time - getDays(time);
-            accout8.onSignal(time, loc, cell);
-            accout18.onSignal(time, loc, cell);
+//            long timeInDay = time - getDays(time);
+            accout.onSignal(time, eventType, lac, cell);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public void onAddTourist(long userTime, String imsi, Accout.Status preStatus) {
-        if (preStatus == Accout.Status.Tourist) return;
-        if (!accout8.isWorker() && !accout18.isWorker()) {
-            listener.onAddTourist(userTime, imsi, status);
-            status = Accout.Status.Tourist;
+    public void onAddArrival(long userTime, String imsi, Accout.Status preStatus) {
+        if (preStatus == Accout.Status.Arrival) return;
+        if (!accout.isWorker()) {
+            listener.onAddArrival(userTime, imsi, status);
+            status = Accout.Status.Arrival;
         }
     }
 
@@ -61,15 +54,13 @@ public class User implements UserGroup.Listener {
     @Override
     public void onAddNormal(long userTime, String imsi, Accout.Status preStatus) {
         if (preStatus == Accout.Status.Normal) return;
-        if (!accout8.isWorker() && !accout18.isWorker()) {
+        if (!accout.isWorker()) {
             listener.onAddNormal(userTime, imsi, status);
             status = Accout.Status.Normal;
         }
-
     }
 
     public void updateGlobleTime(Long globalTime) {
-        accout8.updateGlobleTime(globalTime);
-        accout18.updateGlobleTime(globalTime);
+        accout.updateGlobleTime(globalTime);
     }
 }
