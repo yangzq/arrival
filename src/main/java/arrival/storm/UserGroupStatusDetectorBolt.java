@@ -1,5 +1,6 @@
 package arrival.storm;
 
+import arrival.util.TimeUtil;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.BasicOutputCollector;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -43,7 +44,7 @@ public class UserGroupStatusDetectorBolt extends BaseBasicBolt implements UserGr
             }
         }
         else if (PreconditionBolt.UPDATETIME.equals(sourceStreamId)) {
-            userGroup.updateGlobleTime(input.getLong(0));
+            userGroup.updateGlobleTime(input.getLong(0), input.getString(1));
         }
     }
 
@@ -56,21 +57,21 @@ public class UserGroupStatusDetectorBolt extends BaseBasicBolt implements UserGr
     public void onAddArrival(long userTime, String imsi, Accout.Status preStatus) {
         if (preStatus == Accout.Status.Arrival) return;
         this.outputcollector.emit(DETECTORSTREAM, new Values(userTime, imsi, "arrival"));
-        System.out.println(String.format("+a:%s %s", imsi, userTime));
+        System.out.println(String.format("+a:%s %s/%s", imsi, userTime, TimeUtil.getTime(userTime)));
     }
 
     @Override
     public void onAddWorker(long userTime, String imsi, Accout.Status preStatus) {
         if (preStatus == Accout.Status.Worker) return;
         this.outputcollector.emit(DETECTORSTREAM, new Values(userTime, imsi, "worker"));
-        System.out.println(String.format("-w:%s %s", imsi, userTime));
+        System.out.println(String.format("-w:%s %s/%s", imsi, userTime, TimeUtil.getTime(userTime)));
     }
 
     @Override
     public void onAddNormal(long userTime, String imsi, Accout.Status preStatus) {
         if (preStatus == Accout.Status.Normal) return;
         this.outputcollector.emit(DETECTORSTREAM, new Values(userTime, imsi, "normal"));
-        System.out.println(String.format("-n:%s %s", imsi, userTime));
+        System.out.println(String.format("-n:%s %s/%s", imsi, userTime, TimeUtil.getTime(userTime)));
     }
 
     @Override

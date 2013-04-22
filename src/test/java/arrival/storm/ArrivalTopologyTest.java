@@ -54,8 +54,24 @@ public class ArrivalTopologyTest {
         Thread.sleep(4 * 1000);
         Sender sender = new Sender(5003);
 
+        sender.send("arrival1", EventTypeConst.EVENT_TURN_ON, "2013-01-04 08:00:00", "lac", "home");
         sender.send("arrival1", EventTypeConst.EVENT_TURN_ON, "2013-01-04 08:01:00", "lac", "airport");
         sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-04 08:10:00", "lac", "airport");
+        sender.send("arrival1", EventTypeConst.EVENT_CALLED, "2013-01-04 10:01:00", "lac", "home");
+
+//        sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-05 08:10:00", "lac", "airport");
+//        sender.send("normal1", EventTypeConst.EVENT_CALL, "2013-01-05 23:59:00", "lac", "home");
+//        sender.send("normal1", EventTypeConst.EVENT_CALL, "2013-01-06 01:01:00", "lac", "home");
+//        sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-06 08:10:00", "lac", "airport");
+//        sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-07 08:10:00", "lac", "airport");
+//        sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-07 09:00:00", "lac", "airport");
+//        sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-07 10:00:00", "lac", "airport");
+//        sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-08 08:10:00", "lac", "airport");
+//        sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-09 08:10:00", "lac", "airport");
+//        sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-10 08:10:00", "lac", "airport");
+//        sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-11 08:10:00", "lac", "airport");
+//        sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-12 08:10:00", "lac", "airport");
+//        sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-13 08:10:00", "lac", "airport");
 
         Thread.sleep(1 * 1000);
         sender.close();

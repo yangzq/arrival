@@ -5,12 +5,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import static arrival.util.TimeUtil.ONE_HOUR;
-import static arrival.util.TimeUtil.getDays;
-
 /**
- * 一个用户，有两个账户，分别为8~18点的账户，18~8点的账户
- * 每个账户都有自己状态(Worker,Tourist,Normal),每当账户的状态发生变更时，会通知用户。
+ * 一个用户，一个账户
+ * 每个账户都有自己状态(Worker,Arrival,Normal),每当账户的状态发生变更时，会通知用户。
  * 用户合并两个账户的状态，如果发现合并后的状态变更了，则发出通知给用户组的Listener。
  */
 public class User implements UserGroup.Listener {
@@ -23,12 +20,11 @@ public class User implements UserGroup.Listener {
     public User(String imsi, UserGroup.Listener listener, EditLog<AccountSnapshot> editLog) throws IOException {
         this.imsi = imsi;
         this.listener = listener;
-        accout = new Accout(8 * ONE_HOUR, imsi, this, editLog);
+        accout = new Accout(imsi, this, editLog);
     }
 
     public void onSignal(long time, String eventType, String lac, String cell) {
         try {
-//            long timeInDay = time - getDays(time);
             accout.onSignal(time, eventType, lac, cell);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -62,5 +58,9 @@ public class User implements UserGroup.Listener {
 
     public void updateGlobleTime(Long globalTime) {
         accout.updateGlobleTime(globalTime);
+    }
+
+    public String getImsi() {
+        return imsi;
     }
 }

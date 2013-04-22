@@ -35,9 +35,22 @@ public class TimeUtil {
     }
 
     public static void main(String[] args) {
-        System.out.println(getTime(0));
-        System.out.println(getDays(1357028262540L));
-        System.out.println(getTime(getDays(1357028262540L) + 8 * ONE_HOUR));
+//        System.out.println(getTime(0));
+//        System.out.println(getDays(1357028262540L));
+//        System.out.println(getTime(getDays(1357028262540L) + 8 * ONE_HOUR));
+
+        try {
+            System.out.println("2013-01-04 00:00:00.000/"+getTime("2013-01-04 00:00:00.000"));
+            System.out.println(getTime(28860000L + getTime("2013-01-04 00:00:00.000")));
+            System.out.println("2013-01-04 08:01:00.000/"+getTime("2013-01-04 08:01:00.000"));
+            System.out.println(getTime("2013-01-04 08:20:00.000") - getTime("2013-01-04 08:01:00.000")); // 1140000
+
+            System.out.println("time:"+getTime(1357287000000L));
+            System.out.println("lastStart:"+getTime(1357257600000L));
+            System.out.println("lastTime:"+getTime(1357257600000L));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
     }
 
     public static String time2HHMMSS(long time) {

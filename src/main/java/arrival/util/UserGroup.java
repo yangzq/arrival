@@ -5,9 +5,7 @@ import org.apache.commons.collections.Transformer;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 /**
  * 一组用户，其中，每个用户为一个User对象，当用户状态发生变更时，会发出通知给listener
@@ -56,9 +54,17 @@ public class UserGroup implements Serializable {
         user.onSignal(time, eventType, lac, cell);
     }
 
-    public void updateGlobleTime(Long globalTime) {
-        for (Object o : detectors.values()) {
-            if (o instanceof User) {
+    public void updateGlobleTime(Long globalTime, String imsi) {
+//        for (Object o : detectors.values()) {
+//            if (o instanceof User) {
+//                ((User) o).updateGlobleTime(globalTime);
+//            }
+//        }
+        Set<String> keys = detectors.keySet();
+        for (Iterator it = keys.iterator(); it.hasNext();){
+            String currImsi = (String)it.next();
+            Object o = detectors.get(currImsi);
+            if ((!currImsi.equals(imsi)) && (o != null)){
                 ((User) o).updateGlobleTime(globalTime);
             }
         }

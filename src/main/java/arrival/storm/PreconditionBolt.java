@@ -49,7 +49,7 @@ public class PreconditionBolt extends BaseBasicBolt {
         }
 
         if (time > lastSignalTime){
-            basicOutputCollector.emit(UPDATETIME, new Values(time));
+            basicOutputCollector.emit(UPDATETIME, new Values(time, imsi));
             lastSignalTime = time;
             logger.debug(String.format("[%s]%s", UPDATETIME, time));
         }
@@ -58,6 +58,6 @@ public class PreconditionBolt extends BaseBasicBolt {
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
         outputFieldsDeclarer.declareStream(PRECONDITION, new Fields("imsi", "eventType", "time", "lac", "cell"));
-        outputFieldsDeclarer.declareStream(UPDATETIME, new Fields("time"));
+        outputFieldsDeclarer.declareStream(UPDATETIME, new Fields("time","imsi"));
     }
 }
