@@ -89,13 +89,14 @@ public class AccountSnapshot implements EditLog.Record, Comparable<AccountSnapsh
     public void writeTo(DataOutputStream out) throws IOException {
 //        out.writeLong(start);
         out.writeUTF(imsi);
+        out.writeLong(time);
         out.writeBoolean(inside);
         out.writeBoolean(isSync);
         if (isSync) {
             out.writeLong(lastStart);
             out.writeLong(lastTime);
             out.writeBoolean(lastInside);
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 30; i++) {
                 out.writeLong(lastRecentDays[i]);
             }
             out.writeInt(lastStatus.ordinal());
@@ -106,14 +107,15 @@ public class AccountSnapshot implements EditLog.Record, Comparable<AccountSnapsh
         AccountSnapshot snapshot = new AccountSnapshot();
 //        snapshot.start = in.readLong();
         snapshot.imsi = in.readUTF();
+        snapshot.time=in.readLong();
         snapshot.inside = in.readBoolean();
         snapshot.isSync = in.readBoolean();
         if (snapshot.isSync) {
             snapshot.lastStart = in.readLong();
             snapshot.lastTime = in.readLong();
             snapshot.lastInside = in.readBoolean();
-            snapshot.lastRecentDays = new long[10];
-            for (int i = 0; i < 10; i++) {
+            snapshot.lastRecentDays = new long[30];
+            for (int i = 0; i < 30; i++) {
                 snapshot.lastRecentDays[i] = in.readLong();
             }
             snapshot.lastStatus = Accout.Status.values()[in.readInt()];

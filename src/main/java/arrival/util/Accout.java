@@ -66,7 +66,7 @@ public class Accout {
                 @Override
                 public boolean on(AccountSnapshot record) {
                     misOrderSnapshots.add(record);
-                    return !(record.isSync() && record.getTime() < time && imsi.equals(record.getImsi())); //找到同步点就不再找了
+                    return !record.isSync() || record.getTime() > time || !imsi.equals(record.getImsi()); //找到同步点就不再找了
                 }
             });
             Collections.sort(misOrderSnapshots);
@@ -98,14 +98,15 @@ public class Accout {
 
 
         }
-        if (!isInside){
-            if (lastStatus == Status.Arrival && time < bootTime + 2 * ONE_HOUR){
+        if (!isInside) {
+            if (lastStatus == Status.Arrival && time < bootTime + 2 * ONE_HOUR) {
                 System.out.println("send sms to imsi:" + imsi + " on " + getTime(time) + "/" + time);
             }
             bootStatus = false;
             bootTime = 0L;
         }
         check(time);
+        System.out.println(this.lastInside);
     }
 
     private void order(long time, boolean inside) {
@@ -113,7 +114,7 @@ public class Accout {
             if (lastInside) { // 上次在景区则添加本次停留时间
                 long delta = Math.max((Math.min(time, lastStart + 24 * ONE_HOUR) - lastTime), 0);
                 lastRecentDays[29] += delta;
-                System.out.println("add delta:" + delta + " on time:" + time +"/" + getTime(time)
+                System.out.println("add delta:" + delta + " on time:" + time + "/" + getTime(time)
                         + " lastStart:" + getTime(lastStart) + " lastTime:" + getTime(lastTime));
             }
             if (time < lastStart + ONE_DAY) {
@@ -125,11 +126,15 @@ public class Accout {
                 }
                 lastRecentDays[29] = 0;
                 lastStart += ONE_DAY;
+                if (lastInside && time < lastStart + ONE_DAY) { // 上次在景区则添加本次停留时间
+                    long delta = Math.max((Math.min(time, lastStart + 24 * ONE_HOUR) - lastTime), 0);
+                    lastRecentDays[29] += delta;
+                    System.out.println("add delta:" + delta + " on time:" + time + "/" + getTime(time)
+                            + " lastStart:" + getTime(lastStart) + " lastTime:" + getTime(lastTime));
+                }
             }
         } while (time > lastStart + ONE_DAY - 1);
-        if (invokeOrderTime.incrementAndGet() == 1L){
-            lastTime = time;
-        }
+        lastTime = time;
         lastInside = inside;
         System.out.println(ArrayUtils.toString(lastRecentDays));
     }

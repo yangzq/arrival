@@ -24,6 +24,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+import static java.lang.Thread.sleep;
+
 /**
  * ArrivalTopology Tester
  */
@@ -51,13 +53,16 @@ public class ArrivalTopologyTest {
         LocalCluster cluster = new LocalCluster();
         cluster.submitTopology("arrival", conf, builder.createTopology());
 
-        Thread.sleep(4 * 1000);
+        sleep(4 * 1000);
         Sender sender = new Sender(5003);
 
-        sender.send("arrival1", EventTypeConst.EVENT_TURN_ON, "2013-01-04 08:00:00", "lac", "home");
+//        sender.send("arrival1", EventTypeConst.EVENT_TURN_ON, "2013-01-04 08:00:00", "lac", "home");
         sender.send("arrival1", EventTypeConst.EVENT_TURN_ON, "2013-01-04 08:01:00", "lac", "airport");
         sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-04 08:10:00", "lac", "airport");
+        sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-04 08:20:00", "lac", "airport");
         sender.send("arrival1", EventTypeConst.EVENT_CALLED, "2013-01-04 10:01:00", "lac", "home");
+        sleep(1000);
+        sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-04 09:59:00", "lac", "home");
 
 //        sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-05 08:10:00", "lac", "airport");
 //        sender.send("normal1", EventTypeConst.EVENT_CALL, "2013-01-05 23:59:00", "lac", "home");
@@ -73,9 +78,9 @@ public class ArrivalTopologyTest {
 //        sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-12 08:10:00", "lac", "airport");
 //        sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-13 08:10:00", "lac", "airport");
 
-        Thread.sleep(1 * 1000);
+        sleep(1 * 1000);
         sender.close();
-        Thread.sleep(1 * 1000);
+        sleep(1 * 1000);
         cluster.shutdown();
     }
 
@@ -88,13 +93,13 @@ public class ArrivalTopologyTest {
         LocalCluster cluster = new LocalCluster();
         cluster.submitTopology("arrival", conf, builder.createTopology());
 
-        Thread.sleep(4 * 1000);
+        sleep(4 * 1000);
         Sender sender = new Sender(5003);
 
 
-        Thread.sleep(1 * 1000);
+        sleep(1 * 1000);
         sender.close();
-        Thread.sleep(1 * 1000);
+        sleep(1 * 1000);
         cluster.shutdown();
     }
 
@@ -107,7 +112,7 @@ public class ArrivalTopologyTest {
         LocalCluster cluster = new LocalCluster();
         cluster.submitTopology("arrival", conf, builder.createTopology());
 
-        Thread.sleep(4 * 1000);
+        sleep(4 * 1000);
         Sender sender = new Sender(5003);
         BufferedReader reader = null;
         try {
@@ -124,7 +129,7 @@ public class ArrivalTopologyTest {
                 reader.close();
             }
         }
-        Thread.sleep(1000);
+        sleep(1000);
         sender.close();
 
         cluster.shutdown();

@@ -202,7 +202,6 @@ public class EditLog<T extends EditLog.Record> implements Serializable {
             int maxIndex = currentLog.logNameIndex;
             while (maxIndex > logNameIndex) {
                 boolean result = new File(logDir, String.valueOf(maxIndex)).delete();
-                System.out.println(result);
                 maxIndex--;
             }
             File newFile = File.createTempFile("storm", "tmp");
@@ -296,8 +295,6 @@ public class EditLog<T extends EditLog.Record> implements Serializable {
                 a++;
             }
         }
-        System.out.println(a);
-        System.out.println(System.currentTimeMillis() - b);
     }
 }
 
