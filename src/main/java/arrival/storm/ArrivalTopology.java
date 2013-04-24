@@ -45,6 +45,7 @@ public class ArrivalTopology {
         String signallingSpout = "signallingSpout";
         String preconditionBolt = "preconditionBolt";
         String statusDetectorBolt = "statusDetectorBolt";
+        String smsBolt = "smsBolt";
 
         builder.setSpout(signallingSpout, new SignalingSpout());
         builder.setBolt(preconditionBolt, new PreconditionBolt(), 1)
@@ -52,6 +53,8 @@ public class ArrivalTopology {
         builder.setBolt(statusDetectorBolt, new UserGroupStatusDetectorBolt(), 1)
                 .fieldsGrouping(preconditionBolt, PreconditionBolt.PRECONDITION, new Fields("imsi"))
                 .allGrouping(preconditionBolt, PreconditionBolt.UPDATETIME);
+        builder.setBolt(smsBolt, new SmsBolt(), 1)
+                .globalGrouping(statusDetectorBolt, UserGroupStatusDetectorBolt.DETECTORSTREAM);
 
         return builder;
     }

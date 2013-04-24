@@ -29,6 +29,7 @@ public class UserGroupStatusDetectorBolt extends BaseBasicBolt implements UserGr
 
     @Override
     public void execute(Tuple input, BasicOutputCollector collector) {
+        logger.debug(input.toString());
         this.outputcollector = collector;
         String sourceStreamId = input.getSourceStreamId();
         if (PreconditionBolt.PRECONDITION.equals(sourceStreamId)) {
@@ -44,6 +45,7 @@ public class UserGroupStatusDetectorBolt extends BaseBasicBolt implements UserGr
             }
         }
         else if (PreconditionBolt.UPDATETIME.equals(sourceStreamId)) {
+            logger.debug(input.toString());
             userGroup.updateGlobleTime(input.getLong(0), input.getString(1));
         }
     }
@@ -56,22 +58,28 @@ public class UserGroupStatusDetectorBolt extends BaseBasicBolt implements UserGr
     @Override
     public void onAddArrival(long userTime, String imsi, Accout.Status preStatus) {
         if (preStatus == Accout.Status.Arrival) return;
-        this.outputcollector.emit(DETECTORSTREAM, new Values(userTime, imsi, "arrival"));
+//        this.outputcollector.emit(DETECTORSTREAM, new Values(userTime, imsi, "arrival"));
         System.out.println(String.format("+a:%s %s/%s", imsi, userTime, TimeUtil.getTime(userTime)));
     }
 
     @Override
     public void onAddWorker(long userTime, String imsi, Accout.Status preStatus) {
         if (preStatus == Accout.Status.Worker) return;
-        this.outputcollector.emit(DETECTORSTREAM, new Values(userTime, imsi, "worker"));
+//        this.outputcollector.emit(DETECTORSTREAM, new Values(userTime, imsi, "worker"));
         System.out.println(String.format("-w:%s %s/%s", imsi, userTime, TimeUtil.getTime(userTime)));
     }
 
     @Override
     public void onAddNormal(long userTime, String imsi, Accout.Status preStatus) {
         if (preStatus == Accout.Status.Normal) return;
-        this.outputcollector.emit(DETECTORSTREAM, new Values(userTime, imsi, "normal"));
+//        this.outputcollector.emit(DETECTORSTREAM, new Values(userTime, imsi, "normal"));
         System.out.println(String.format("-n:%s %s/%s", imsi, userTime, TimeUtil.getTime(userTime)));
+    }
+
+    @Override
+    public void sendSms(long userTime, String imsi) {
+        this.outputcollector.emit(DETECTORSTREAM, new Values(userTime, imsi, "sms"));
+        System.out.println(String.format("+sms:%s %s/%s", imsi, userTime, TimeUtil.getTime(userTime)));
     }
 
     @Override

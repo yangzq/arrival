@@ -56,6 +56,12 @@ public class User implements UserGroup.Listener {
         }
     }
 
+    @Override
+    public void sendSms(long userTime, String imsi) {
+        listener.sendSms(userTime, imsi);
+
+    }
+
     public void updateGlobleTime(Long globalTime) {
         accout.updateGlobleTime(globalTime);
     }

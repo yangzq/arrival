@@ -56,11 +56,11 @@ public class ArrivalTopologyTest {
         sleep(4 * 1000);
         Sender sender = new Sender(5003);
 
-//        sender.send("arrival1", EventTypeConst.EVENT_TURN_ON, "2013-01-04 08:00:00", "lac", "home");
+        sender.send("arrival1", EventTypeConst.EVENT_TURN_OFF, "2013-01-04 08:00:00", "lac", "home");
         sender.send("arrival1", EventTypeConst.EVENT_TURN_ON, "2013-01-04 08:01:00", "lac", "airport");
         sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-04 08:10:00", "lac", "airport");
         sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-04 08:20:00", "lac", "airport");
-        sender.send("arrival1", EventTypeConst.EVENT_CALLED, "2013-01-04 10:01:00", "lac", "home");
+//        sender.send("arrival1", EventTypeConst.EVENT_CALLED, "2013-01-04 10:01:00", "lac", "home");
         sleep(1000);
         sender.send("arrival1", EventTypeConst.EVENT_CALL, "2013-01-04 09:59:00", "lac", "home");
 
@@ -108,6 +108,8 @@ public class ArrivalTopologyTest {
         TopologyBuilder builder = arrival.storm.ArrivalTopology.getTopologyBuilder();
         Config conf = new Config();
         conf.setDebug(true);
+        conf.put(Config.TOPOLOGY_DEBUG, true);
+        conf.put(Config.TOPOLOGY_MAX_TASK_PARALLELISM, 50);
 
         LocalCluster cluster = new LocalCluster();
         cluster.submitTopology("arrival", conf, builder.createTopology());
@@ -116,11 +118,11 @@ public class ArrivalTopologyTest {
         Sender sender = new Sender(5003);
         BufferedReader reader = null;
         try {
-//            String filePath = "/tmp/100001000002068.csv";
+//            String filePath = "/tmp/100001002999342.csv";
             String filePath = "/data.csv";
             reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(filePath)));
             for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-                String signal = line.substring(0, line.indexOf("calling") - 1);
+                String signal = line.substring(0, line.indexOf(",2013-"));
                 sender.send(signal);
                 System.out.println("send:" + line);
             }

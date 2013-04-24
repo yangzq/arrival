@@ -60,12 +60,19 @@ public class UserGroup implements Serializable {
 //                ((User) o).updateGlobleTime(globalTime);
 //            }
 //        }
-        Set<String> keys = detectors.keySet();
-        for (Iterator it = keys.iterator(); it.hasNext();){
-            String currImsi = (String)it.next();
-            Object o = detectors.get(currImsi);
-            if ((!currImsi.equals(imsi)) && (o != null)){
-                ((User) o).updateGlobleTime(globalTime);
+//        Set<String> keys = detectors.keySet();
+//        for (Iterator it = keys.iterator(); it.hasNext();){
+//            String currImsi = (String)it.next();
+//            Object o = detectors.get(currImsi);
+//            if ((!currImsi.equals(imsi)) && (o != null)){
+//                ((User) o).updateGlobleTime(globalTime);
+//            }
+//        }
+        for (Map.Entry<String, User> entry: detectors.entrySet()) {
+            String currImsi = entry.getKey();
+            User user = entry.getValue();
+            if (!(imsi.equals(currImsi)) && (user != null)) {
+                user.updateGlobleTime(globalTime);
             }
         }
     }
@@ -78,6 +85,7 @@ public class UserGroup implements Serializable {
         void onAddArrival(long userTime, String imsi, Accout.Status preStatus);
         void onAddWorker(long userTime, String imsi, Accout.Status preStatus);
         void onAddNormal(long userTime, String imsi, Accout.Status preStatus);
+        void sendSms(long userTime, String imsi);
     }
 
 }

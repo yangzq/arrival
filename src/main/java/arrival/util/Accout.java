@@ -95,18 +95,22 @@ public class Accout {
                     this.editLog.append(snapshot);
                 }
             }
-
-
         }
-        if (!isInside) {
-            if (lastStatus == Status.Arrival && time < bootTime + 2 * ONE_HOUR) {
-                System.out.println("send sms to imsi:" + imsi + " on " + getTime(time) + "/" + time);
-            }
-            bootStatus = false;
-            bootTime = 0L;
-        }
+//        if (!isInside) {
+//            if (lastStatus == Status.Arrival && bootStatus && time < bootTime + 2 * ONE_HOUR) {
+//                System.out.println("send sms to imsi:" + imsi + " on " + getTime(time) + "/" + time);
+//            }
+//            bootStatus = false;
+//            bootTime = 0L;
+//        }
+
+//        if (imsi.equals("100001002990698") && time == 1359568614987L){
+//            System.out.println();
+//        }
+//        if (imsi.equals("100001002990698") && time == 1359563843303L){
+//            System.out.println();
+//        }
         check(time);
-        System.out.println(this.lastInside);
     }
 
     private void order(long time, boolean inside) {
@@ -136,7 +140,7 @@ public class Accout {
         } while (time > lastStart + ONE_DAY - 1);
         lastTime = time;
         lastInside = inside;
-        System.out.println(ArrayUtils.toString(lastRecentDays));
+        System.out.println(imsi + ":" + ArrayUtils.toString(lastRecentDays) + time + "/" + getTime(time));
     }
 
     public boolean isWorker() {
@@ -151,6 +155,15 @@ public class Accout {
     }
 
     private void check(long time) {
+        if (!lastInside) {
+            if (lastStatus == Status.Arrival && bootStatus && time < bootTime + 2 * ONE_HOUR) {
+                this.listener.sendSms(time, imsi);
+                System.out.println("send sms to imsi:" + imsi + " on " + getTime(time) + "/" + time);
+            }
+            bootStatus = false;
+            bootTime = 0L;
+        }
+
         int i = 0;
         long timeSum = 0L;
         for (long o : lastRecentDays) {
