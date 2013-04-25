@@ -23,7 +23,8 @@ public class PreconditionBolt extends BaseBasicBolt {
     public static final String PRECONDITION = "preconditionStream";
     public static final String UPDATETIME = "updateTimeStream";
     private BasicOutputCollector outputCollector;
-    private long lastSignalTime = 0L;
+//    private long lastSignalTime = 0L;
+    private static long i = 0L;
 
     @Override
     public void execute(Tuple tuple, BasicOutputCollector basicOutputCollector) {
@@ -48,11 +49,19 @@ public class PreconditionBolt extends BaseBasicBolt {
             }
         }
 
-        if (time > lastSignalTime){
+        if ((i & 127) == 0){ // 隔128条
             basicOutputCollector.emit(UPDATETIME, new Values(time, imsi));
-            lastSignalTime = time;
-            logger.debug(String.format("[%s]%s", UPDATETIME, time));
+            if (logger.isDebugEnabled()) {
+                logger.debug(String.format("[%s]%s", UPDATETIME, time));
+            }
         }
+        i++;
+
+//        if (time > lastSignalTime){
+//            basicOutputCollector.emit(UPDATETIME, new Values(time, imsi));
+//            lastSignalTime = time;
+//            logger.debug(String.format("[%s]%s", UPDATETIME, time));
+//        }
     }
 
     @Override

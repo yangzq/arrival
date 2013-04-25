@@ -26,7 +26,7 @@ public class ArrivalTopology {
             System.out.println("Remote mode");
             conf.setNumWorkers(10);
             conf.setMaxSpoutPending(100);
-            conf.setNumAckers(4);
+            conf.setNumAckers(10);
             conf.setMessageTimeoutSecs(5);
             StormSubmitter.submitTopology(args[0], conf, builder.createTopology());
         } else {
@@ -50,7 +50,7 @@ public class ArrivalTopology {
         builder.setSpout(signallingSpout, new SignalingSpout());
         builder.setBolt(preconditionBolt, new PreconditionBolt(), 1)
                 .fieldsGrouping(signallingSpout, SignalingSpout.SIGNALLING, new Fields("imsi"));
-        builder.setBolt(statusDetectorBolt, new UserGroupStatusDetectorBolt(), 1)
+        builder.setBolt(statusDetectorBolt, new UserGroupStatusDetectorBolt(), 4)
                 .fieldsGrouping(preconditionBolt, PreconditionBolt.PRECONDITION, new Fields("imsi"))
                 .allGrouping(preconditionBolt, PreconditionBolt.UPDATETIME);
         builder.setBolt(smsBolt, new SmsBolt(), 1)
