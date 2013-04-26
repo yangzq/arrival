@@ -1,7 +1,6 @@
 package arrival.util;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -47,6 +46,7 @@ public class Accout {
         this.listener = listener;
         this.lastStart = 0;
         this.editLog = editLog;
+        System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
     }
 
     public void onSignal(final long time, String eventType, String lac, String cell) throws IOException {
@@ -57,7 +57,7 @@ public class Accout {
         }
         AccountSnapshot accountSnapshot = new AccountSnapshot(imsi, time, isInside, true, lastStart, lastTime, lastInside, lastRecentDays, lastStatus);
         this.editLog.append(accountSnapshot);
-        if (time >= lastTime) {//正序
+        if (!(time < lastTime)) {//正序
             order(time, isInside);
         } else {//乱序,很少发生，不需要考虑效率
             final List<AccountSnapshot> misOrderSnapshots = new ArrayList<AccountSnapshot>();

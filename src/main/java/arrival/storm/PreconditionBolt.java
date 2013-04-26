@@ -34,7 +34,6 @@ public class PreconditionBolt extends BaseBasicBolt {
         Long time = tuple.getLong(2);
         String lac = tuple.getString(3);
         String cell = tuple.getString(4);
-        System.out.println(String.format("[%s]%s,%s,%s,%s,%s", PRECONDITION, imsi, eventType, time, lac, cell));
         logger.info(String.format("[%s]%s,%s,%s,%s,%s", PRECONDITION, imsi, eventType, time, lac, cell));
         if (logger.isDebugEnabled()){
             logger.debug(String.format("[%s]%s,%s,%s,%s,%s", PRECONDITION, imsi, eventType, time, lac, cell));
