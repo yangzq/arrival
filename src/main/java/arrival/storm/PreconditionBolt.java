@@ -2,6 +2,7 @@ package arrival.storm;
 
 import arrival.util.KbUtils;
 
+import arrival.util.TimeUtil;
 import backtype.storm.topology.BasicOutputCollector;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseBasicBolt;
@@ -23,7 +24,7 @@ public class PreconditionBolt extends BaseBasicBolt {
     public static final String PRECONDITION = "preconditionStream";
     public static final String UPDATETIME = "updateTimeStream";
     private BasicOutputCollector outputCollector;
-//    private long lastSignalTime = 0L;
+    //    private long lastSignalTime = 0L;
     private static long i = 0L;
 
     @Override
@@ -35,24 +36,27 @@ public class PreconditionBolt extends BaseBasicBolt {
         String lac = tuple.getString(3);
         String cell = tuple.getString(4);
         logger.info(String.format("[%s]%s,%s,%s,%s,%s", PRECONDITION, imsi, eventType, time, lac, cell));
-        if (logger.isDebugEnabled()){
+        if (logger.isDebugEnabled()) {
             logger.debug(String.format("[%s]%s,%s,%s,%s,%s", PRECONDITION, imsi, eventType, time, lac, cell));
         }
 
         boolean matchARPU = KbUtils.getInstance().checkARPU(imsi);
         if (matchARPU) {
-            basicOutputCollector.emit(PRECONDITION, new Values(imsi, eventType, time, lac, cell));
+            outputCollector.emit(PRECONDITION, new Values(imsi, eventType, time, lac, cell));
         } else {
-            if (logger.isDebugEnabled()){
+            if (logger.isDebugEnabled()) {
                 logger.debug(String.format("ARPU not match:%s", imsi));
             }
         }
 
-        if ((i & 127) == 0){ // 隔128条
-            basicOutputCollector.emit(UPDATETIME, new Values(time, imsi));
-            if (logger.isDebugEnabled()) {
-                logger.debug(String.format("[%s]%s", UPDATETIME, time));
+        if ((i & 1023) == 0) { // 隔1024条
+//            if (time > lastSignalTime){
+            outputCollector.emit(UPDATETIME, new Values(time, imsi));
+//                lastSignalTime = time;
+            if (logger.isInfoEnabled()) {
+                logger.info(String.format("[%s]%s/%s", UPDATETIME, time, TimeUtil.getTime(time)));
             }
+//            }
         }
         i++;
 
@@ -66,6 +70,6 @@ public class PreconditionBolt extends BaseBasicBolt {
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
         outputFieldsDeclarer.declareStream(PRECONDITION, new Fields("imsi", "eventType", "time", "lac", "cell"));
-        outputFieldsDeclarer.declareStream(UPDATETIME, new Fields("time","imsi"));
+        outputFieldsDeclarer.declareStream(UPDATETIME, new Fields("time", "imsi"));
     }
 }

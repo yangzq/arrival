@@ -55,19 +55,6 @@ public class UserGroup implements Serializable {
     }
 
     public void updateGlobleTime(Long globalTime, String imsi) {
-//        for (Object o : detectors.values()) {
-//            if (o instanceof User) {
-//                ((User) o).updateGlobleTime(globalTime);
-//            }
-//        }
-//        Set<String> keys = detectors.keySet();
-//        for (Iterator it = keys.iterator(); it.hasNext();){
-//            String currImsi = (String)it.next();
-//            Object o = detectors.get(currImsi);
-//            if ((!currImsi.equals(imsi)) && (o != null)){
-//                ((User) o).updateGlobleTime(globalTime);
-//            }
-//        }
         for (Map.Entry<String, User> entry: detectors.entrySet()) {
             String currImsi = entry.getKey();
             User user = entry.getValue();

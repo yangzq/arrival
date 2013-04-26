@@ -48,11 +48,11 @@ public class ArrivalTopology {
         String smsBolt = "smsBolt";
 
         builder.setSpout(signallingSpout, new SignalingSpout());
-        builder.setBolt(preconditionBolt, new PreconditionBolt(), 1)
+        builder.setBolt(preconditionBolt, new PreconditionBolt(), 2)
                 .fieldsGrouping(signallingSpout, SignalingSpout.SIGNALLING, new Fields("imsi"));
         builder.setBolt(statusDetectorBolt, new UserGroupStatusDetectorBolt(), 4)
                 .fieldsGrouping(preconditionBolt, PreconditionBolt.PRECONDITION, new Fields("imsi"))
-                .allGrouping(preconditionBolt, PreconditionBolt.UPDATETIME);
+                .fieldsGrouping(preconditionBolt, PreconditionBolt.UPDATETIME, new Fields("imsi"));
         builder.setBolt(smsBolt, new SmsBolt(), 1)
                 .globalGrouping(statusDetectorBolt, UserGroupStatusDetectorBolt.DETECTORSTREAM);
 

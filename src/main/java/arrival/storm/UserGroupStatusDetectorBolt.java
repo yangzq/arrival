@@ -26,10 +26,13 @@ public class UserGroupStatusDetectorBolt extends BaseBasicBolt implements UserGr
     private UserGroup userGroup = new UserGroup(this);
     private BasicOutputCollector outputcollector;
     public static final String DETECTORSTREAM = "detectorStream";
+    private long lastSignalTime = 0L;
 
     @Override
     public void execute(Tuple input, BasicOutputCollector collector) {
-        logger.debug(input.toString());
+        if (logger.isDebugEnabled()){
+            logger.debug(input.toString());
+        }
         this.outputcollector = collector;
         String sourceStreamId = input.getSourceStreamId();
         if (PreconditionBolt.PRECONDITION.equals(sourceStreamId)) {
@@ -45,8 +48,16 @@ public class UserGroupStatusDetectorBolt extends BaseBasicBolt implements UserGr
             }
         }
         else if (PreconditionBolt.UPDATETIME.equals(sourceStreamId)) {
-            logger.debug(input.toString());
-            userGroup.updateGlobleTime(input.getLong(0), input.getString(1));
+            long time = input.getLong(0);
+            if (time > lastSignalTime){
+                userGroup.updateGlobleTime(time, input.getString(1));
+                lastSignalTime = time;
+                if (logger.isDebugEnabled()){
+                    logger.debug(input.toString());
+                }
+            } else {
+                logger.info("drop time:" + time + "/" + TimeUtil.getTime(time) + " < " + lastSignalTime);
+            }
         }
     }
 
