@@ -57,7 +57,7 @@ public class SignalingSpout extends BaseRichSpout {
 
     @Override
     public void nextTuple() {
-        String message =null;
+        String message = null;
         while ((message = queue.poll()) != null) {
             String[] columns = message.split(",");
             Values tuple = new Values(columns[0], columns[1], Long.parseLong(columns[2]), columns[3], columns[4]);

@@ -50,7 +50,7 @@ public class ArrivalTopology {
         builder.setSpout(signallingSpout, new SignalingSpout());
         builder.setBolt(preconditionBolt, new PreconditionBolt(), 2)
                 .fieldsGrouping(signallingSpout, SignalingSpout.SIGNALLING, new Fields("imsi"));
-        builder.setBolt(statusDetectorBolt, new UserGroupStatusDetectorBolt(), 4)
+        builder.setBolt(statusDetectorBolt, new UserGroupStatusDetectorBolt(), 2)
                 .fieldsGrouping(preconditionBolt, PreconditionBolt.PRECONDITION, new Fields("imsi"))
                 .fieldsGrouping(preconditionBolt, PreconditionBolt.UPDATETIME, new Fields("imsi"));
         builder.setBolt(smsBolt, new SmsBolt(), 1)
